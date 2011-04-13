@@ -13,16 +13,3 @@ lexicon_l(v,   'ziet').
 lexicon_l(n,   'vrouw').
 lexicon_l(n,   'verrekijker').
 lexicon_l(p,   'met').
-
-grammar(TopCat, SubCatNodes) :-
-	grammar_l(TopCat, SubCats),
-	nodify(SubCats, SubCatNodes).
-
-nodify([], []).
-nodify([Cat|Cats], [n(Cat,_)|Nodes]) :-
-	nodify(Cats, Nodes).
-
-categorise([], []).
-categorise([Word|Words],[n(Cat,t(Word))|Cats]) :-
-	lexicon_l(Cat,Word),
-	categorise(Words,Cats).
