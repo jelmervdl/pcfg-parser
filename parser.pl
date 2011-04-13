@@ -1,35 +1,8 @@
-grammar_l(s,  [np,  vp]).
-grammar_l(np, [det, n]).
-grammar_l(np, [np, pp]).
-grammar_l(vp, [v]).
-grammar_l(vp, [v, np]).
-grammar_l(vp, [v, np, pp]).
-grammar_l(pp, [p, np]).
-
-lexicon_l(det, 'het').
-lexicon_l(det, 'de').
-lexicon_l(n,   'man').
-lexicon_l(v,   'ziet').
-lexicon_l(n,   'vrouw').
-lexicon_l(n,   'verrekijker').
-lexicon_l(p,   'met').
-
-grammar(TopCat, SubCatNodes) :-
-	grammar_l(TopCat, SubCats),
-	nodify(SubCats, SubCatNodes).
-
-nodify([], []).
-nodify([Cat|Cats], [n(Cat,_)|Nodes]) :-
-	nodify(Cats, Nodes).
+:- include('grammars/stupid.pl').
 
 parse(Sentence, Result) :-
 	categorise(Sentence, Cats),
 	reduce(Cats, Result).
-
-categorise([], []).
-categorise([Word|Words],[n(Cat,t(Word))|Cats]) :-
-	lexicon_l(Cat,Word),
-	categorise(Words,Cats).
 
 reduce([n(s,X)], n(s,X)).
 reduce(Categories, Result) :-
@@ -68,7 +41,7 @@ test_parse :-
 find_all_parses(Sentence) :-
 	findall(Parse, parse(Sentence, Parse), Parses),
 	sort(Parses, Pruned),
-	export_parses_to_alpino('parse_~d.xml', 0, Pruned).
+	export_parses_to_alpino('parses/parse_~d.xml', 0, Pruned).
 
 export_parses_to_alpino(_, _, []).
 export_parses_to_alpino(Template, Counter, [Parse|Parses]) :-
