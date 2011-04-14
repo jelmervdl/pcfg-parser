@@ -74,5 +74,7 @@ while (($line = fgets(STDIN, 4096)) !== false)
 	// Horrible hack to fix a quoting error:
 	$sentence = preg_replace("/'(\[+)/", "$1'", $sentence);
 	
+	$sentence = str_replace(",]", "]", $sentence);
+	
 	printf("variable_sentence(%d, [%s]).\n", $parts[1], $sentence);
 }
