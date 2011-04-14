@@ -9,40 +9,41 @@ serial(N) :-
 	N is M + 1,
 	asserta(serial_(N)).
 
-grammar(TopCat, SubCatNodes) :-
-	grammar_l(TopCat, SubCats),
-	nodify(SubCats, SubCatNodes).
+grammar(TopCat, SubCatNodes, Attr) :-
+	nodify(SubCats, SubCatNodes),
+	grammar_l(TopCat, SubCats, Attr).
 
 nodify([], []).
-nodify([Cat|Cats], [n(Cat,_)|Nodes]) :-
+nodify([Cat|Cats], [n(Cat,_,_)|Nodes]) :-
 	nodify(Cats, Nodes).
 
 categorise([], []).
-categorise([Word|Words],[n(Cat,t(Word))|Cats]) :-
-	lexicon_l(Cat,Word),
+categorise([Word|Words],[n(Cat,t(Word),Attr)|Cats]) :-
+	lexicon_l(Cat,Word,Attr),
 	categorise(Words,Cats).
 
 parse(Sentence, Result) :-
 	categorise(Sentence, Cats),
 	reduce(Cats, Result).
 
-reduce([n(s,X)], n(s,X)).
+reduce([n(s,X,Attr)], n(s,X,Attr)).
 reduce(Categories, Result) :-
 	subsequence(SubCats,Categories),
-	grammar(TopCat, SubCats),
+	grammar(TopCat, SubCats, Attr),
 	%subset(SubCats,Categories), % doesn't work, propably because it binds the unbound variables in the nodes.
-	replace(Categories, SubCats, [n(TopCat, SubCats)], Reduced),
+	replace(Categories, SubCats, [n(TopCat, SubCats, Attr)], Reduced),
 	reduce(Reduced, Result).
 
-subsequence_([],_).
-subsequence_([S|Sub],[S|Rest]) :-	
+% subsequence starts from the right and the longest possible subsequence from there.
+subsequence__(Sub,Rest) :-
 	subsequence_(Sub,Rest).
-
-subsequence(Sub,Rest) :-
-	subsequence_(Sub,Rest).
-
+subsequence__([],_).
+subsequence_([S|Sub],[S|Rest]) :-
+	subsequence__(Sub,Rest).
 subsequence(Sub,[_|Rest]) :-
 	subsequence(Sub,Rest).
+subsequence(Sub,Rest) :-
+	subsequence_(Sub,Rest).
 
 replace_([], [], [], []).
 
@@ -68,7 +69,8 @@ test_replace :-
 	replace([x,a,a,b,z], [a,b], [c], [x,a,c,z]).
 
 test_parse :-
-	parse([de,man,ziet,de,vrouw,met,de,verrekijker], Result),
+	sentence(_, Sentence),
+	parse(Sentence, Result),
 	n_to_alpino(Result, XML),
 	xml_write(user, [XML], []).
 
@@ -77,6 +79,7 @@ test_subsequence :-
 	subsequence([b,c], [a,b,c,d]),
 	subsequence([c,d], [a,b,c,d]),
 	subsequence([a,b], [a,b]),
+	not(subsequence([], [a,b,c])),
 	not(subsequence([b,a], [a,b])),
 	not(subsequence([a,c], [a,b,c,d])).
 
@@ -107,8 +110,8 @@ n_to_alpino(Root, element(alpino_ds, [version=1.3], XMLNodes)) :-
 	n_to_xml([Root], XMLNodes).
 
 n_to_xml([], []).
-n_to_xml([n(Cat,t(Word))|Nodes], [element(node, [cat=Cat,lemma=Word], [])|XMLNodes]) :-
+n_to_xml([n(Cat,t(Word),Attr)|Nodes], [element(node, [cat=Cat,lemma=Word|Attr], [])|XMLNodes]) :-
 	n_to_xml(Nodes, XMLNodes).
-n_to_xml([n(Cat, Children)|Nodes], [element(node, [cat=Cat],XMLChildren)|XMLNodes]) :-
+n_to_xml([n(Cat,Children,Attr)|Nodes], [element(node, [cat=Cat|Attr],XMLChildren)|XMLNodes]) :-
 	n_to_xml(Children, XMLChildren),
 	n_to_xml(Nodes, XMLNodes).
