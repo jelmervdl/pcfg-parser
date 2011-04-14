@@ -69,5 +69,10 @@ while (($line = fgets(STDIN, 4096)) !== false)
 			: $word;
 	}, $words);
 	
-	printf("variable_sentence(%d, [%s]).\n", $parts[1], implode(',', $words));
+	$sentence = implode(',', $words);
+	
+	// Horrible hack to fix a quoting error:
+	$sentence = preg_replace("/'(\[+)/", "$1'", $sentence);
+	
+	printf("variable_sentence(%d, [%s]).\n", $parts[1], $sentence);
 }
