@@ -115,3 +115,20 @@ n_to_xml([n(Cat,t(Word),Attr)|Nodes], [element(node, [cat=Cat,lemma=Word|Attr], 
 n_to_xml([n(Cat,Children,Attr)|Nodes], [element(node, [cat=Cat|Attr],XMLChildren)|XMLNodes]) :-
 	n_to_xml(Children, XMLChildren),
 	n_to_xml(Nodes, XMLNodes).
+
+% Converters the variable_sentence into normal sentences.
+sentence(N,Sentence):-
+	variable_sentence(N,Parts),
+	build_sentence(Parts,Sentence).
+
+build_sentence([],[]).
+
+build_sentence([Option|Options],Sentence):-
+	is_list(Option),
+	!,
+	member(Part,Option),
+	build_sentence(Options,Parts),
+	append(Part,Parts,Sentence).
+
+build_sentence([Word|Options], [Word|Sentence]):-
+	build_sentence(Options, Sentence).
